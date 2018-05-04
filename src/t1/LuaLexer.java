@@ -1,36 +1,22 @@
 package t1;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.atn.ATN;
 
-import org.antlr.v4.runtime.*;
+public class LuaLexer extends Lexer{
 
-public class LuaLexer implements TokenSource {
     public LuaLexer(ANTLRInputStream input) {
     }
 
-    public Token nextToken() {
+    public String[] getRuleNames() {
+        return new String[0];
+    }
+
+    public String getGrammarFileName() {
         return null;
     }
 
-    public int getLine() {
-        return 0;
-    }
-
-    public int getCharPositionInLine() {
-        return 0;
-    }
-
-    public CharStream getInputStream() {
-        return null;
-    }
-
-    public String getSourceName() {
-        return null;
-    }
-
-    public void setTokenFactory(TokenFactory<?> tokenFactory) {
-
-    }
-
-    public TokenFactory<?> getTokenFactory() {
+    public ATN getATN() {
         return null;
     }
 }
