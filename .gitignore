@@ -58,3 +58,8 @@ fabric.properties
 # Maven
 log/
 target/
+
+# ANTLR
+
+src/t1/Lua*.java
+src/t1/Lua*.tokens
