@@ -8,18 +8,14 @@ grammar Lua;
 @members {
    public static String grupo="<<Digite os RAs do grupo aqui>>";
 }
-
+WS:   (' ') -> skip;
+ENDL:  ([\n] | [\t]) -> skip;
 // base
-fragment LETRA : ('A'..'Z' | 'a'..'z');
-fragment ALGARISMO : ('0'..'9');
-
-CARACTERE : (LETRA) | (ALGARISMO)+ | (LETRA)+ (ALGARISMO)+ | (ALGARISMO)+ (LETRA)+;
-INTEIRO : (ALGARISMO)+;
+fragment LETRA: [a-z|A-Z];
+fragment ALGARISMO: [0-9];
 
 // Declarar funcao:
 FUNCTION : 'function' ;
-NOMEVARIAVEL : 'n';
-NOMEFUNCAO : 'func';
 
 // IF
 IF : 'if';
@@ -28,31 +24,39 @@ ELSE: 'else';
 
 // Utilidades
 COMPARACAO: '==';
-COMENTARIO : '--' CARACTERE;
 LPAREN : '(' ;
 RPAREN : ')' ;
 END : 'end';
 RETURN: 'return';
 OPERADOR : '*' | '-';
+COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
+UNDERSCORE: '_';
+//COMENTARIO_CORPO: ID;
 
-// geral
-programa : (declaracao)? (conjunto_codigos)?;
-conjunto_codigos : comando | comentario comando | comando comentario/*| comando conjunto_codigos*/;
-comando : declaracao | comando_if | calculo;
-declaracao : declaracao_funcao;
-expressao_logica: var COMPARACAO INTEIRO;
+ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?;
+NUMERO : ALGARISMO+;
 
-calculo : var OPERADOR chamada_funcao | var OPERADOR INTEIRO;
+programa : bloco;
 
-// if
-comando_if:IF (' ') expressao_logica (' ') THEN ELSE END;
+bloco: comando comando | comando;
 
-// funcao
-declaracao_funcao: FUNCTION (' ') funcao_nome (' ') LPAREN var RPAREN ('\n') conjunto_codigos END;
-chamada_funcao: funcao_nome LPAREN calculo RPAREN;
+comando : comentario
+        | if_decl
+        | retorno
+        | funcao_decl;
+comentario: COMENTARIO_INICIO;
 
-// outros
-funcao_nome : NOMEFUNCAO{TabelaDeSimbolos.adicionarSimbolo($NOMEFUNCAO.text, Tipo.FUNCAO};
-var : NOMEVARIAVEL{TabelaDeSimbolos.adicionarSimbolo($NOMEVARIAVEL.text, Tipo.VARIAVEL};
-comentario : COMENTARIO;
-retorno: RETURN INTEIRO | RETURN calculo;
+retorno: RETURN valor;
+
+if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
+log_exp: valor COMPARACAO valor;
+
+funcao_decl: FUNCTION funcao_nome LPAREN var RPAREN bloco END ';' ;
+
+funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
+var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
+valor: (NUMERO|var) | exp | funcao_chamada;
+
+funcao_chamada : ID LPAREN valor RPAREN;
+
+exp: (NUMERO|var) OPERADOR valor; // tratar ordem de operadores
