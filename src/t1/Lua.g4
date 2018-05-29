@@ -64,11 +64,11 @@ comando : atr
         | for_decl;
 comentario: COMENTARIO_INICIO;
 
-retorno: RETURN valor;
+retorno: RETURN (valor|exp);
 
 do_decl: DO bloco END;
 repeat_decl: REPEAT bloco UNTIL log_exp;
-for_decl: FOR atr COMMA LPAREN valor RPAREN DO bloco END DOT_COMMA;
+for_decl: FOR atr COMMA LPAREN (valor|exp) RPAREN DO bloco END DOT_COMMA;
 
 if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
 log_exp: valor COMPARACAO valor;
@@ -77,10 +77,10 @@ funcao_decl: FUNCTION funcao_nome LPAREN lista_valor RPAREN bloco END DOT_COMMA;
 
 funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
-valor: (NUMERO|var) | exp | funcao_chamada | CADEIA | var DOT funcao_chamada;
-atr: (LOCAL)? var ATRIBUICAO valor;
+valor: (NUMERO|var) | funcao_chamada | CADEIA | var DOT funcao_chamada;
+atr: (LOCAL)? var ATRIBUICAO (valor|exp);
 
 funcao_chamada : ID LPAREN lista_valor RPAREN;
-lista_valor: (valor COMMA)* valor;
+lista_valor: ((valor|exp) COMMA)* (valor|exp);
 
-exp: (NUMERO|var) OPERADOR valor; // tratar ordem de operadores
+exp: valor OPERADOR valor; // tratar ordem de operadores
