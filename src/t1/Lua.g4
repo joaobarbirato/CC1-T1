@@ -31,13 +31,14 @@ FOR: 'for';
 DO: 'do';
 
 // Utilidades
+LOCAL: 'local';
 ATRIBUICAO: '=';
-COMPARACAO: '==';
+COMPARACAO: '==' | '>';
 LPAREN : '(' ;
 RPAREN : ')' ;
 END : 'end';
 RETURN: 'return';
-OPERADOR : '*' | '-' | '+';
+OPERADOR : '*' | '-' | '+' | '/';
 COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
 UNDERSCORE: '_';
 DOT: '.';
@@ -59,24 +60,25 @@ comando : atr
         | funcao_decl
         | funcao_chamada
         | repeat_decl
+        | do_decl
         | for_decl;
 comentario: COMENTARIO_INICIO;
 
 retorno: RETURN valor;
 
-
+do_decl: DO bloco END;
 repeat_decl: REPEAT bloco UNTIL log_exp;
 for_decl: FOR atr COMMA LPAREN valor RPAREN DO bloco END DOT_COMMA;
 
 if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
 log_exp: valor COMPARACAO valor;
 
-funcao_decl: FUNCTION funcao_nome LPAREN var RPAREN bloco END DOT_COMMA;
+funcao_decl: FUNCTION funcao_nome LPAREN lista_valor RPAREN bloco END DOT_COMMA;
 
 funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
 valor: (NUMERO|var) | exp | funcao_chamada | CADEIA | var DOT funcao_chamada;
-atr: ID ATRIBUICAO valor;
+atr: (LOCAL)? var ATRIBUICAO valor;
 
 funcao_chamada : ID LPAREN lista_valor RPAREN;
 lista_valor: (valor COMMA)* valor;
