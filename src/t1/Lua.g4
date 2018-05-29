@@ -58,9 +58,11 @@ CADEIA: ([\\'] (~[\\'])* [\\']) | ('"' (~'"')* '"');
 ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?;
 NUMERO : ALGARISMO* DOT? ALGARISMO+;
 
-programa : bloco;
+programa : trecho;
 
-bloco: (comando SEMI_C?)* (comando_ultimo SEMI_C?)?;
+
+trecho: (comando SEMI_C?)* (comando_ultimo SEMI_C?)?;
+bloco: trecho;
 comando_ultimo: retorno ;
 
 comando : atr
@@ -84,12 +86,13 @@ log_exp: (valor|exp) COMPARACAO (valor|exp);
 
 funcao_decl: FUNCTION funcao_nome funcao_corpo;
 funcao_corpo: LPAREN lista_valor RPAREN bloco END SEMI_C;
-funcao_chamada : ID args;
+funcao_chamada : funcao_nome args;
 args: LPAREN lista_valor RPAREN;
-funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
+funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); } ;
 
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
-valor: (NUMERO|var)
+valor: NUMERO
+     | var
      | funcao_chamada
      | CADEIA
      | var DOT funcao_chamada;
@@ -97,8 +100,10 @@ valor: (NUMERO|var)
 atr: (LOCAL)? var ATRIBUICAO (valor|exp);
 
 lista_valor: ((valor|exp) COMMA)* (valor|exp);
+lista_var: (var COMMA)* var;
 
-exp: valor (operador1 | operador2) (valor|exp) | operador_un (valor|exp) ;
+exp: valor (operador1 | operador2) (valor|exp)
+   | operador_un (valor|exp) ;
 
 
 operador1: MINUS | PLUS;
