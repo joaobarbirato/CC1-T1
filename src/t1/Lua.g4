@@ -51,7 +51,7 @@ NUMERO : ALGARISMO+;
 
 programa : bloco;
 
-bloco: (comando DOT_COMMA?)* comando DOT_COMMA? /*| comando DOT_COMMA?*/;
+bloco: (comando DOT_COMMA?)+ /*| comando DOT_COMMA?*/;
 
 comando : atr
         | comentario
