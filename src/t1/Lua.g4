@@ -98,7 +98,7 @@ atr: (LOCAL)? var ATRIBUICAO (valor|exp);
 
 lista_valor: ((valor|exp) COMMA)* (valor|exp);
 
-exp: valor (operador1 | operador2) (valor|exp) | operador_un (var|exp) ;
+exp: valor (operador1 | operador2) (valor|exp) | operador_un (valor|exp) ;
 
 
 operador1: MINUS | PLUS;
