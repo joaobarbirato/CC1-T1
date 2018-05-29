@@ -40,11 +40,12 @@ RETURN: 'return';
 OPERADOR : '*' | '-' | '+';
 COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
 UNDERSCORE: '_';
+DOT: '.';
 COMMA: ',';
 DOT_COMMA: ';' ;
 CADEIA: ([\\'] (~[\\'])* [\\']) | ('"' (~'"')* '"');
 
-ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)? ('.'(LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?)?;
+ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?;
 NUMERO : ALGARISMO+;
 
 programa : bloco;
@@ -74,7 +75,7 @@ funcao_decl: FUNCTION funcao_nome LPAREN var RPAREN bloco END DOT_COMMA;
 
 funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
-valor: (NUMERO|var) | exp | funcao_chamada | CADEIA;
+valor: (NUMERO|var) | exp | funcao_chamada | CADEIA | var DOT funcao_chamada;
 atr: ID ATRIBUICAO valor;
 
 funcao_chamada : ID LPAREN lista_valor RPAREN;
