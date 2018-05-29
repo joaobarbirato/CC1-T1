@@ -30,6 +30,14 @@ UNTIL: 'until';
 FOR: 'for';
 DO: 'do';
 
+// Operadores
+MINUS: '-';
+PLUS: '+';
+TIMES: '*';
+DIVIDED: '/';
+NOR: 'nor';
+HASH: '#';
+
 // Utilidades
 LOCAL: 'local';
 ATRIBUICAO: '=';
@@ -38,25 +46,26 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 END : 'end';
 RETURN: 'return';
-OPERADOR : '*' | '-' | '+' | '/';
+
+
 COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
 UNDERSCORE: '_';
 DOT: '.';
 COMMA: ',';
-DOT_COMMA: ';' ;
+SEMI_C: ';' ;
 CADEIA: ([\\'] (~[\\'])* [\\']) | ('"' (~'"')* '"');
 
 ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?;
-NUMERO : ALGARISMO+;
+NUMERO : ALGARISMO* DOT? ALGARISMO+;
 
 programa : bloco;
 
-bloco: (comando DOT_COMMA?)+ /*| comando DOT_COMMA?*/;
+bloco: (comando SEMI_C?)* (comando_ultimo SEMI_C?)?;
+comando_ultimo: retorno ;
 
 comando : atr
         | comentario
         | if_decl
-        | retorno
         | funcao_decl
         | funcao_chamada
         | repeat_decl
@@ -68,19 +77,30 @@ retorno: RETURN (valor|exp);
 
 do_decl: DO bloco END;
 repeat_decl: REPEAT bloco UNTIL log_exp;
-for_decl: FOR atr COMMA LPAREN (valor|exp) RPAREN DO bloco END DOT_COMMA;
+for_decl: FOR atr COMMA LPAREN (valor|exp) RPAREN DO bloco END SEMI_C;
 
 if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
-log_exp: valor COMPARACAO valor;
+log_exp: (valor|exp) COMPARACAO (valor|exp);
 
-funcao_decl: FUNCTION funcao_nome LPAREN lista_valor RPAREN bloco END DOT_COMMA;
-
+funcao_decl: FUNCTION funcao_nome funcao_corpo;
+funcao_corpo: LPAREN lista_valor RPAREN bloco END SEMI_C;
+funcao_chamada : ID args;
+args: LPAREN lista_valor RPAREN;
 funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
+
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
-valor: (NUMERO|var) | funcao_chamada | CADEIA | var DOT funcao_chamada;
+valor: (NUMERO|var)
+     | funcao_chamada
+     | CADEIA
+     | var DOT funcao_chamada;
+
 atr: (LOCAL)? var ATRIBUICAO (valor|exp);
 
-funcao_chamada : ID LPAREN lista_valor RPAREN;
 lista_valor: ((valor|exp) COMMA)* (valor|exp);
 
-exp: valor OPERADOR valor; // tratar ordem de operadores
+exp: valor (operador1 | operador2) (valor|exp) | operador_un (valor|exp) ;
+
+
+operador1: MINUS | PLUS;
+operador2: TIMES | DIVIDED;
+operador_un: MINUS | NOR |HASH;
