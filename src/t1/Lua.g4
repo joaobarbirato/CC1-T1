@@ -22,41 +22,65 @@ IF : 'if';
 THEN: 'then';
 ELSE: 'else';
 
+// Repeat
+REPEAT: 'repeat';
+UNTIL: 'until';
+
+// For
+FOR: 'for';
+DO: 'do';
+
 // Utilidades
-COMPARACAO: '==';
+LOCAL: 'local';
+ATRIBUICAO: '=';
+COMPARACAO: '==' | '>';
 LPAREN : '(' ;
 RPAREN : ')' ;
 END : 'end';
 RETURN: 'return';
-OPERADOR : '*' | '-';
+OPERADOR : '*' | '-' | '+' | '/';
 COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
 UNDERSCORE: '_';
-//COMENTARIO_CORPO: ID;
+DOT: '.';
+COMMA: ',';
+DOT_COMMA: ';' ;
+CADEIA: ([\\'] (~[\\'])* [\\']) | ('"' (~'"')* '"');
 
 ID : (LETRA|UNDERSCORE) ((LETRA|ALGARISMO|UNDERSCORE)+)?;
 NUMERO : ALGARISMO+;
 
 programa : bloco;
 
-bloco: comando comando | comando;
+bloco: (comando DOT_COMMA?)+ /*| comando DOT_COMMA?*/;
 
-comando : comentario
+comando : atr
+        | comentario
         | if_decl
         | retorno
-        | funcao_decl;
+        | funcao_decl
+        | funcao_chamada
+        | repeat_decl
+        | do_decl
+        | for_decl;
 comentario: COMENTARIO_INICIO;
 
 retorno: RETURN valor;
 
+do_decl: DO bloco END;
+repeat_decl: REPEAT bloco UNTIL log_exp;
+for_decl: FOR atr COMMA LPAREN valor RPAREN DO bloco END DOT_COMMA;
+
 if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
 log_exp: valor COMPARACAO valor;
 
-funcao_decl: FUNCTION funcao_nome LPAREN var RPAREN bloco END ';' ;
+funcao_decl: FUNCTION funcao_nome LPAREN lista_valor RPAREN bloco END DOT_COMMA;
 
 funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); };
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
-valor: (NUMERO|var) | exp | funcao_chamada;
+valor: (NUMERO|var) | exp | funcao_chamada | CADEIA | var DOT funcao_chamada;
+atr: (LOCAL)? var ATRIBUICAO valor;
 
-funcao_chamada : ID LPAREN valor RPAREN;
+funcao_chamada : ID LPAREN lista_valor RPAREN;
+lista_valor: (valor COMMA)* valor;
 
 exp: (NUMERO|var) OPERADOR valor; // tratar ordem de operadores
