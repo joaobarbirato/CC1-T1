@@ -46,12 +46,12 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 END : 'end';
 RETURN: 'return';
+FALSE: 'false';
 
 
 COMENTARIO_INICIO: '--' ~([\n]|[\r])+ -> skip;
 UNDERSCORE: '_';
 DOT: '.';
-COMMA: ',';
 SEMI_C: ';' ;
 CADEIA: ([\\'] (~[\\'])* [\\']) | ('"' (~'"')* '"');
 
@@ -79,7 +79,7 @@ retorno: RETURN (valor|exp);
 
 do_decl: DO bloco END;
 repeat_decl: REPEAT bloco UNTIL log_exp;
-for_decl: FOR atr COMMA LPAREN (valor|exp) RPAREN DO bloco END SEMI_C;
+for_decl: FOR atr DO bloco END SEMI_C;
 
 if_decl: IF log_exp THEN bloco (ELSE bloco)? END;
 log_exp: (valor|exp) COMPARACAO (valor|exp);
@@ -88,24 +88,27 @@ funcao_decl: FUNCTION funcao_nome funcao_corpo;
 funcao_corpo: LPAREN lista_valor RPAREN bloco END SEMI_C;
 funcao_chamada : funcao_nome args;
 args: LPAREN lista_valor RPAREN;
-funcao_nome: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.FUNCAO); } ;
+funcao_nome: funcao_nome_tabela{ TabelaDeSimbolos.adicionarSimbolo($funcao_nome_tabela.text, Tipo.FUNCAO); };
+
+funcao_nome_tabela: ID (DOT ID)?;
 
 var: ID{ TabelaDeSimbolos.adicionarSimbolo($ID.text, Tipo.VARIAVEL); };
 valor: NUMERO
      | var
      | funcao_chamada
      | CADEIA
-     | var DOT funcao_chamada;
+     | FALSE
+     ;
 
-atr: (LOCAL)? var ATRIBUICAO (valor|exp);
+atr: (LOCAL)? lista_var '=' lista_valor;
 
-lista_valor: ((valor|exp) COMMA)* (valor|exp);
-lista_var: (var COMMA)* var;
+lista_valor: ((valor|exp) ',')* (valor|exp);
+lista_var: (var ',')* var;
 
 exp: valor (operador1 | operador2) (valor|exp)
-   | operador_un (valor|exp) ;
+   | operador_un (valor|exp) | LPAREN (valor | exp) RPAREN;
 
-
+atribuicao: ATRIBUICAO;
 operador1: MINUS | PLUS;
 operador2: TIMES | DIVIDED;
 operador_un: MINUS | NOR |HASH;
